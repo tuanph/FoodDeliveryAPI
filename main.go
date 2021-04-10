@@ -1,6 +1,7 @@
 package main
 
 import (
+	"FoodDelivery/component"
 	"FoodDelivery/modules/restaurant/restauranttransport/ginrestaurant"
 	"log"
 	"net/http"
@@ -23,27 +24,20 @@ func main() {
 }
 
 func runService(db *gorm.DB) error { // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+	appCtx := component.NewAppContext(db)
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "ping pong",
 		})
 	})
 
 	restaurants := r.Group("/restaurants")
 	{
-		restaurants.POST("", ginrestaurant.CreateRestaurant(db))
-		restaurants.GET("", func(c *gin.Context) {
-			var data []Restaurant
-			newDB := db
-			if err := newDB.Table("restaurants").Find(&data).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err,
-				})
-			}
-			c.JSON(http.StatusOK, data)
-		})
+		restaurants.POST("", ginrestaurant.CreateRestaurant(appCtx))
+		restaurants.GET("", ginrestaurant.ListRestaurant(appCtx))
 
 	}
 	return r.Run()

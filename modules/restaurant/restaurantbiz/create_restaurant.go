@@ -3,7 +3,6 @@ package restaurantbiz
 import (
 	"FoodDelivery/modules/restaurant/restaurantmodel"
 	"context"
-	"errors"
 )
 
 //Declare Interface
@@ -21,8 +20,8 @@ func NewCreateRestaurantBiz(store CreateRestaurantStore) *createRestaurantBiz {
 
 //Implemet methods
 func (biz *createRestaurantBiz) CreateRestaurant(ctx context.Context, data *restaurantmodel.RestaurantCreate) error {
-	if data.Name == "" {
-		return errors.New("restaurant name can't be blank")
+	if err := data.Validate(); err != nil {
+		return err
 	}
 	err := biz.store.Create(ctx, data)
 	return err

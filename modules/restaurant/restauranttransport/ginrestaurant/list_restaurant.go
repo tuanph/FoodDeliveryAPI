@@ -11,25 +11,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateRestaurant(appCtx component.AppContext) gin.HandlerFunc {
+func ListRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data restaurantmodel.RestaurantCreate
-		if err := c.ShouldBind(&data); err != nil {
+		var filter restaurantmodel.Filter
+
+		if err := c.ShouldBind(&filter); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
+
 			return
 		}
+
+		var paging common.Paging
+
+		if err := c.ShouldBind(&paging); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+
+			return
+		}
+
+		paging.Fulfill()
 
 		store := restaurantstorage.NewMySQLStore(appCtx.GetConnectionString())
-		biz := restaurantbiz.NewCreateRestaurantBiz(store)
+		biz := restaurantbiz.NewListRestaurantBiz(store)
 
-		if err := biz.CreateRestaurant(c.Request.Context(), &data); err != nil {
+		result, err := biz.ListRestaurant(c.Request.Context(), &filter, &paging)
+
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
+
 			return
 		}
-		c.JSON(http.StatusOK, common.SimpleSuccessResponse(data))
+
+		c.JSON(http.StatusOK, common.NewSuccessResponse(result, paging, filter))
 	}
 }
