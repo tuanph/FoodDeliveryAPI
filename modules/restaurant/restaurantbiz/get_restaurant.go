@@ -3,6 +3,7 @@ package restaurantbiz
 import (
 	"FoodDelivery/modules/restaurant/restaurantmodel"
 	"context"
+	"errors"
 )
 
 type GetRestaurantStore interface {
@@ -22,6 +23,11 @@ func NewGetRestaurantBiz(store GetRestaurantStore) *getRestaurantBiz {
 
 func (biz *getRestaurantBiz) GetRestaurant(ctx context.Context, id int) (*restaurantmodel.Restaurant, error) {
 	data, err := biz.store.FindDataByCondition(ctx, map[string]interface{}{"id": id})
-
+	if err != nil {
+		return nil, err
+	}
+	if data.Status == 0 {
+		return nil, errors.New("data deleted")
+	}
 	return data, err
 }
