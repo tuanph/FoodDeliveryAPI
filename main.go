@@ -2,6 +2,7 @@ package main
 
 import (
 	"FoodDelivery/component"
+	"FoodDelivery/middleware"
 	"FoodDelivery/modules/restaurant/restauranttransport/ginrestaurant"
 	"log"
 	"net/http"
@@ -27,6 +28,8 @@ func runService(db *gorm.DB) error { // listen and serve on 0.0.0.0:8080 (for wi
 
 	appCtx := component.NewAppContext(db)
 	r := gin.Default()
+
+	r.Use(middleware.Recover(appCtx))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

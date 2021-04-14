@@ -15,20 +15,18 @@ func CreateRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data restaurantmodel.RestaurantCreate
 		if err := c.ShouldBind(&data); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
+			if err := c.ShouldBind(&data); err != nil {
+				panic(common.ErrInvalidRequest(err))
+			}
 		}
 
 		store := restaurantstorage.NewMySQLStore(appCtx.GetConnectionString())
 		biz := restaurantbiz.NewCreateRestaurantBiz(store)
 
 		if err := biz.CreateRestaurant(c.Request.Context(), &data); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
+			if err := c.ShouldBind(&data); err != nil {
+				panic(err)
+			}
 		}
 		c.JSON(http.StatusOK, common.SimpleSuccessResponse(data))
 	}

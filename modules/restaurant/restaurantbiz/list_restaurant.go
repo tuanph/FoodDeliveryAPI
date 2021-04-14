@@ -28,6 +28,8 @@ func (biz *listRestaurantBiz) ListRestaurant(
 	paging *common.Paging,
 ) ([]restaurantmodel.Restaurant, error) {
 	result, err := biz.store.ListDataByCondition(ctx, nil, filter, paging)
-
-	return result, err
+	if err != nil {
+		return nil, common.ErrCannotListEntity(restaurantmodel.EntityName, err)
+	}
+	return result, nil
 }

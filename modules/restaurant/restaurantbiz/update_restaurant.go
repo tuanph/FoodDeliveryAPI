@@ -1,9 +1,9 @@
 package restaurantbiz
 
 import (
+	"FoodDelivery/common"
 	"FoodDelivery/modules/restaurant/restaurantmodel"
 	"context"
-	"errors"
 )
 
 type UpdateRestaurantStore interface {
@@ -25,14 +25,14 @@ func NewUpdateRestaurantBiz(store UpdateRestaurantStore) *updateRestaurantBiz {
 func (biz *updateRestaurantBiz) UpdateRestaurant(ctx context.Context, id int, data *restaurantmodel.RestaurantUpdate) error {
 	oldData, err := biz.store.FindDataByCondition(ctx, map[string]interface{}{"id": id})
 	if err != nil {
-		return err
-	}
-	if oldData.Status == 0 {
-		return errors.New("data deleted")
+		return common.ErrCannotGetEntity(restaurantmodel.EntityName, err)
 	}
 
+	if oldData.Status == 0 {
+		return common.ErrEntityDeleted(restaurantmodel.EntityName, nil)
+	}
 	if err := biz.store.UpdateData(ctx, id, data); err != nil {
-		return err
+		return common.ErrCannotUpdateEntity(restaurantmodel.EntityName, err)
 	}
 	return nil
 
