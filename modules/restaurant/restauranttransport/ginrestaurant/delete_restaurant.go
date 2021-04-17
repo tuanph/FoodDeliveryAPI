@@ -11,23 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetRestaurant(appCtx component.AppContext) gin.HandlerFunc {
+func DeleteRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
-
 		if err != nil {
 			panic(common.ErrInvalidRequest(err))
 		}
 
 		store := restaurantstorage.NewMySQLStore(appCtx.GetConnectionString())
-		biz := restaurantbiz.NewGetRestaurantBiz(store)
+		biz := restaurantbiz.NewDeleteRestaurantBiz(store)
 
-		data, err := biz.GetRestaurant(c.Request.Context(), id)
-
-		if err != nil {
+		if err := biz.DeleteRestaurant(c.Request.Context(), id); err != nil {
 			panic(err)
 		}
-
-		c.JSON(http.StatusOK, common.SimpleSuccessResponse(data))
+		c.JSON(http.StatusOK, common.SimpleSuccessResponse("true"))
 	}
 }

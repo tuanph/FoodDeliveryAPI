@@ -19,7 +19,7 @@ func (s *mysqlStore) ListDataByCondition(ctx context.Context,
 		db = db.Preload(moreKeys[i])
 	}
 
-	db = db.Table(restaurantmodel.Restaurant{}.TableName()).Where(conditions)
+	db = db.Table(restaurantmodel.Restaurant{}.TableName()).Where(conditions).Where("status in (1)")
 	if v := filter; v != nil {
 		if v.CityId > 0 {
 			db = db.Where("city_id = ?", v.CityId)
@@ -31,7 +31,7 @@ func (s *mysqlStore) ListDataByCondition(ctx context.Context,
 	}
 
 	if err := db.Offset((paging.Page - 1) * paging.Limit).Limit(paging.Limit).Order("id desc").Find(&result).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
 	}
 	return result, nil
 }
