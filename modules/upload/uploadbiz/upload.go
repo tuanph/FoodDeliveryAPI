@@ -35,9 +35,9 @@ func (biz *uploadBiz) Upload(ctx context.Context, data []byte, folder, fileName 
 
 	w, h, err := getImageDimension(fileBytes)
 
-	// if err != nil {
-	// 	return nil, uploadmodel.ErrFileIsNotImage(err)
-	// }
+	if err != nil {
+		return nil, uploadmodel.ErrFileIsNotImage(err)
+	}
 
 	if strings.TrimSpace(folder) == "" {
 		folder = "img"
