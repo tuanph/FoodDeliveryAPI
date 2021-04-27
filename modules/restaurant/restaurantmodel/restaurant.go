@@ -56,3 +56,6 @@ func (res *RestaurantCreate) Validate() error {
 func (res *Restaurant) Mask(isAdminOrOwner bool) {
 	res.GenUID(common.DbTypeRestaurant)
 }
+func (res *RestaurantCreate) Mask(isAdminOrOwner bool) {
+	res.GenUID(common.DbTypeRestaurant)
+}
