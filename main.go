@@ -6,6 +6,7 @@ import (
 	"FoodDelivery/middleware"
 	"FoodDelivery/modules/restaurant/restauranttransport/ginrestaurant"
 	"FoodDelivery/modules/upload/uploadtransport/ginupload"
+	"FoodDelivery/modules/user/usertransport/ginuser"
 	"log"
 	"net/http"
 
@@ -24,19 +25,20 @@ func main() {
 	s3SecretKey := "PFfMcY4H6bweTKIbwQ7526TJCEvKlaSxFZmrOx4x"
 	s3Domain := ""
 	s3Provider := uploadprovider.NewS3Provider(s3BucketName, s3Region, s3APIKey, s3SecretKey, s3Domain)
+	secretKey := "TUANPH_FOODDELIVERY_GOLANG"
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err := runService(db, s3Provider); err != nil {
+	if err := runService(db, s3Provider, secretKey); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider) error { // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey string) error { // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
-	appCtx := component.NewAppContext(db, upProvider)
+	appCtx := component.NewAppContext(db, upProvider, secretKey)
 	r := gin.Default()
 
 	r.Use(middleware.Recover(appCtx))
@@ -47,9 +49,14 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider) error { /
 		})
 	})
 
-	r.POST("/upload", ginupload.Upload(appCtx))
+	v1 := r.Group("/v1")
 
-	restaurants := r.Group("/restaurants")
+	v1.POST("/upload", ginupload.Upload(appCtx))
+	v1.POST("/register", ginuser.Register(appCtx))
+	v1.POST("/login", ginuser.Login(appCtx))
+	v1.GET("/profile", middleware.RequiredAuth(appCtx), ginuser.GetProfile(appCtx))
+
+	restaurants := v1.Group("/restaurants", middleware.RequiredAuth(appCtx))
 	{
 		restaurants.POST("", ginrestaurant.CreateRestaurant(appCtx))
 		restaurants.GET("", ginrestaurant.ListRestaurant(appCtx))
