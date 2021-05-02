@@ -9,11 +9,12 @@ import (
 const EntityName = "Restaurant"
 
 type Restaurant struct {
-	common.SQLModel `json:"inline"`
+	common.SQLModel `json:",inline"`
 	Name            string         `json:"name" gorm:"column:name;"`
 	Addr            string         `json:"address" gorm:"column:addr;"`
 	Logo            *common.Image  `json:"logo" gorm:"column:logo;"`
 	Cover           *common.Images `json:"cover" gorm:"column:cover;"`
+	LikedCount      int            `json:"liked_count" gorm:"-"`
 }
 
 func (Restaurant) TableName() string {
@@ -32,7 +33,7 @@ func (RestaurantUpdate) TableName() string {
 }
 
 type RestaurantCreate struct {
-	common.SQLModel `json:"inline"`
+	common.SQLModel `json:",inline"`
 	Name            string         `json:"name" gorm:"column:name;"`
 	Addr            string         `json:"address" gorm:"column:addr;"`
 	Logo            *common.Image  `json:"logo" gorm:"column:logo;"`
@@ -51,4 +52,11 @@ func (res *RestaurantCreate) Validate() error {
 	}
 
 	return nil
+}
+
+func (res *Restaurant) Mask(isAdminOrOwner bool) {
+	res.GenUID(common.DbTypeRestaurant)
+}
+func (res *RestaurantCreate) Mask(isAdminOrOwner bool) {
+	res.GenUID(common.DbTypeRestaurant)
 }
